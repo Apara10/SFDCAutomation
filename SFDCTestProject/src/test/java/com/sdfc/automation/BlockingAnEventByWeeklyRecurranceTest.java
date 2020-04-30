@@ -7,8 +7,10 @@ import java.util.List;
 import java.util.TimeZone;
 
 import org.openqa.selenium.By;
+import org.openqa.selenium.JavascriptExecutor;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
+import org.openqa.selenium.interactions.Actions;
 import org.openqa.selenium.interactions.SendKeysAction;
 import org.openqa.selenium.support.ui.Select;
 
@@ -25,22 +27,31 @@ public class BlockingAnEventByWeeklyRecurranceTest extends LaunchWebBrowser {
 	}
 
 	private static void VeriBlockingAnEvent(boolean isAlreadyLogIn2) throws Exception {
+
 		isAlreadyLogIn2 = launchApp();
 		System.out.println("Logged in: " + isAlreadyLogIn2);
 		WebElement homeTab = WaitUtility.waitForElementVisible(driver, By.xpath("//a[contains(text(),'Home')]"));
 		homeTab.click();
-		System.out.println("Home  Tab clicked");
-		Thread.sleep(4000);
-		WebElement datelink = driver.findElement(By.xpath(" //a[contains(text(),'Monday April 27, 2020')]"));
+		String currentHandle = driver.getWindowHandle();
+		driver.switchTo().window(currentHandle);
+		String userName = driver.findElement(By.xpath("//h1[@class='currentStatusUserName']//a")).getText();
+		System.out.println("Home Page for " + userName + "is displayed");
+		Thread.sleep(2000);
+		WebElement datelink = driver.findElement(By.xpath(" //span[@class='pageDescription']//a"));
+		System.out.println("Date Displayed:" + datelink.getText());
 		datelink.click();
 		Thread.sleep(2000);
-		String timexpath = "//table[@id='calTable']//td[contains(@class,'fixedTable')]//div//a[contains(text(),'4:00 PM')]";
-		WebElement timeEle = WaitUtility.waitForElementVisible(driver, By.xpath(timexpath));
-		timeEle.click();
-		String currentHandle = driver.getWindowHandle();
+		String expectedText = driver.findElement(By.xpath("//h1[contains(@class,'pageType')]")).getText();
+		StringBuilder sbexpectedname = new StringBuilder(expectedText);
+		if (sbexpectedname.indexOf(userName) > -1) {
+			System.out.println("Current username is displayed");
+		}
+		WebElement timelink = driver.findElement(By.xpath("//a[contains(text(),'4:00 PM')]"));
+		timelink.click();
+		System.out.println("Time link is clicked ");
 		WebElement subjectin = WaitUtility.waitForElementVisible(driver, By.xpath("//img[@class='comboboxIcon']"));
-		// WebElement subjectin = WaitUtility.waitForElementVisible(driver,
-		// By.xpath("//input[contains(@name,'evt5')]"));
+		// WebElement subjectin =
+		// WaitUtility.waitForElementVisible(driver,By.xpath("//input[contains(@name,'evt5')]"));
 		subjectin.click();
 
 		ArrayList<String> windowTabs = new ArrayList(driver.getWindowHandles());
@@ -49,25 +60,26 @@ public class BlockingAnEventByWeeklyRecurranceTest extends LaunchWebBrowser {
 				driver.switchTo().window(s);
 				Thread.sleep(1000);
 				System.out.println("Title of the new window: " + driver.getTitle());
-				Thread.sleep(2000);
 				WebElement other = driver.findElement(By.xpath("//a[contains(text(),'Other')]"));
 				other.click();
 			}
 		}
 		driver.switchTo().window(currentHandle);
 		Thread.sleep(1000);
-		WebElement endTime = driver.findElement(By.xpath("//input[@id='EndDateTime_time']"));
-		endTime.clear();
-		Thread.sleep(1000);
-		endTime.sendKeys("7:00 PM");
+		Actions action = new Actions(driver);
+		WebElement endDateTime = driver.findElement(By.xpath("//input[@id='EndDateTime_time']"));
+		endDateTime.click();
+		JavascriptExecutor js = (JavascriptExecutor) driver;
+		js.executeScript("arguments[0].scrollIntoView()", endDateTime);
+		action.moveToElement(endDateTime).click().build().perform();
+		Thread.sleep(2000);
 		WebElement recurrencecheck = WaitUtility.waitForElementVisible(driver,
 				By.xpath(" //input[@id='IsRecurrence']"));
 		if (!recurrencecheck.isSelected()) {
 			recurrencecheck.click();
 		}
 		Thread.sleep(2000);
-		WebElement weekelyRadio = driver.findElement(By.xpath("//input[@id='rectypeftw']"));
-		weekelyRadio.click();
+
 		Calendar calendar = Calendar.getInstance(TimeZone.getDefault());
 		int today = calendar.get(Calendar.DATE);
 		int month = calendar.get(Calendar.MONTH);
@@ -76,10 +88,11 @@ public class BlockingAnEventByWeeklyRecurranceTest extends LaunchWebBrowser {
 		int aDay = calendar.get(Calendar.DATE);
 		int aMonth = calendar.get(Calendar.MONTH);
 		int ayear = calendar.get(Calendar.YEAR);
-		WebElement endateTime = WaitUtility.waitForElementVisible(driver, By.xpath("//input[@id='EndDateTime']"));
-		endateTime.click();
 
-		Thread.sleep(1000);
+		WebElement weekelyRadio = driver.findElement(By.xpath("//input[@id='rectypeftw']"));
+		weekelyRadio.click();
+		WebElement endDate = driver.findElement(By.xpath("//input[@id='EndDateTime']"));
+		endDate.click();
 		if (month != aMonth) {
 			driver.findElement(By.xpath("//div[@id='datePicker']//img[@class='calRight']")).click();
 			Thread.sleep(1000);
@@ -97,7 +110,6 @@ public class BlockingAnEventByWeeklyRecurranceTest extends LaunchWebBrowser {
 				break;
 			}
 		}
-		System.out.println("hi");
 		Thread.sleep(2000);
 		driver.findElement(By.xpath("//td[@id='bottomButtonRow']//input[@name='save']")).click();
 		WebElement monthview = WaitUtility.waitForElementVisible(driver, By.xpath("//img[@class='monthViewIcon']"));
