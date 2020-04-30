@@ -6,8 +6,10 @@ import java.util.List;
 import java.util.TimeZone;
 
 import org.openqa.selenium.By;
+import org.openqa.selenium.JavascriptExecutor;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
+import org.openqa.selenium.interactions.Actions;
 
 import com.sfdc.automation.LaunchWebBrowser;
 import com.sfdc.automation.WaitUtility;
@@ -22,18 +24,26 @@ public class BlockAnEventTest extends LaunchWebBrowser {
 		System.out.println("Logged in: " + isAlreadyLogIn2);
 		WebElement homeTab = WaitUtility.waitForElementVisible(driver, By.xpath("//a[contains(text(),'Home')]"));
 		homeTab.click();
-		System.out.println("Home  Tab clicked");
-		Thread.sleep(4000);
-		WebElement datelink = driver.findElement(By.xpath(" //a[contains(text(),'Monday April 27, 2020')]"));
+		String currentHandle= driver.getWindowHandle();
+		driver.switchTo().window(currentHandle);
+		String userName=driver.findElement(By.xpath("//h1[@class='currentStatusUserName']//a")).getText();
+		System.out.println("Home Page for "+userName+"is displayed");
+		Thread.sleep(2000);
+		WebElement datelink = driver.findElement(By.xpath(" //span[@class='pageDescription']//a"));
+		System.out.println("Date Displayed:"+datelink.getText());
 		datelink.click();
 		Thread.sleep(2000);
-		String timexpath = "//table[@id='calTable']//td[contains(@class,'fixedTable')]//div//a[contains(text(),'8:00 PM')]";
-		WebElement timeEle = WaitUtility.waitForElementVisible(driver, By.xpath(timexpath));
-		timeEle.click();
-		String currentHandle = driver.getWindowHandle();
+		String expectedText=driver.findElement(By.xpath("//h1[contains(@class,'pageType')]")).getText();
+		StringBuilder sbexpectedname=new StringBuilder(expectedText);
+		if(sbexpectedname.indexOf(userName)>-1) {
+			System.out.println("Current username is displayed");
+		}
+	 
+		WebElement timelink=driver.findElement(By.xpath("//a[contains(text(),'8:00 PM')]"));
+		timelink.click();
+			System.out.println("Time link is clicked ");
 		WebElement subjectin = WaitUtility.waitForElementVisible(driver, By.xpath("//img[@class='comboboxIcon']"));
-		// WebElement subjectin = WaitUtility.waitForElementVisible(driver,
-		// By.xpath("//input[contains(@name,'evt5')]"));
+		// WebElement subjectin = WaitUtility.waitForElementVisible(driver,By.xpath("//input[contains(@name,'evt5')]"));
 		subjectin.click();
 
 		ArrayList<String> windowTabs = new ArrayList(driver.getWindowHandles());
@@ -42,18 +52,19 @@ public class BlockAnEventTest extends LaunchWebBrowser {
 				driver.switchTo().window(s);
 				Thread.sleep(1000);
 				System.out.println("Title of the new window: " + driver.getTitle());
-				Thread.sleep(2000);
 				WebElement other = driver.findElement(By.xpath("//a[contains(text(),'Other')]"));
 				other.click();
 			}
 		}
 		driver.switchTo().window(currentHandle);
 		Thread.sleep(1000);
+		Actions action=new Actions(driver);
 		WebElement endTime = driver.findElement(By.xpath("//input[@id='EndDateTime_time']"));
-		endTime.clear();
+		endTime.click();
+		JavascriptExecutor js = (JavascriptExecutor) driver;
+		js.executeScript("arguments[0].scrollIntoView()", endTime);
+	  action.moveToElement(endTime).click().build().perform();
 		Thread.sleep(1000);
-		endTime.sendKeys("9:00 PM");
-		Thread.sleep(2000);
 		driver.findElement(By.xpath("//td[@id='bottomButtonRow']//input[@name='save']")).click();
 		Thread.sleep(3000);
 		isAlreadyLogIn2 = logoutOfApp(driver, isAlreadyLogIn2);
