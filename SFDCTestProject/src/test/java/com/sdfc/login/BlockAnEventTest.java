@@ -17,7 +17,7 @@ public class BlockAnEventTest extends LaunchWebBrowser {
 	public static void main(String[] args) throws Exception {
          VeriBlockingAnEvent(isAlreadyLogIn);
 	}
-	//abcd
+	//abcd2
 	private static void VeriBlockingAnEvent(boolean isAlreadyLogIn2) throws Exception {
 		isAlreadyLogIn2 = launchApp();
 		System.out.println("Logged in: " + isAlreadyLogIn2);
